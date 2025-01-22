@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Optional, List
 from ollama import Client
 import numpy as np
@@ -13,6 +13,7 @@ from config import config
 @dataclass
 class RuntimeConfig(Data):
     fps: int
+    allow_single_frame: bool
     model: str
 
     @staticmethod
@@ -20,16 +21,16 @@ class RuntimeConfig(Data):
         return RuntimeConfig(**data)
 
 class LLava(FrameModel):
-    def __init__(self, runtime_config: RuntimeConfig):
+    def __init__(self, runtime_config: dict):
         self.client = Client(config["llama_endpoint"])
-        self.config = runtime_config
+        self.config = RuntimeConfig.from_dict(runtime_config)
         self.tmp = config["storage"]["tmp"]
 
     def get_config(self) -> dict:
-        return self.config
+        return asdict(self.config)
     
     def set_config(self, cfg: dict) -> None:
-        self.config = cfg
+        self.config = RuntimeConfig.from_dict(cfg)
 
     def tag(self, img: np.ndarray) -> List[FrameTag]:
         # save the image to a file
@@ -44,7 +45,7 @@ class LLava(FrameModel):
 
         # Query the LLaVA model with the image and a prompt
         response = self.client.generate(
-            model=self.config["model"],
+            model=self.config.model,
             prompt="Describe the contents of this image.",
             images=[image_data]
         )
