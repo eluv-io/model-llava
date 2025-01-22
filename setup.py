@@ -1,0 +1,13 @@
+from setuptools import setup, find_packages
+
+setup(
+    name='llava',
+    version='0.1',
+    packages=find_packages(),
+    install_requires=[
+        'ollama',
+        'elv-client-py @ git+https://github.com/eluv-io/elv-client-py.git#egg=elv-client-py',
+        'quick_test_py @ git+https://github.com/elv-nickB/quick_test_py.git#egg=quick_test_py',
+        'common_ml @ git+ssh://git@github.com/qluvio/common-ml.git#egg=common_ml',
+    ],
+)

@@ -1,0 +1,7 @@
+llama_endpoint: http://localhost:11434
+storage:
+  tmp: tmp
+runtime:
+  default:
+    model: llava:13b
+    fps: 0.25
