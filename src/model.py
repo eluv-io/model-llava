@@ -2,7 +2,7 @@ from dataclasses import dataclass, asdict
 from typing import Optional, List
 from ollama import Client
 import numpy as np
-import PIL
+from PIL import Image
 import tempfile
 
 from common_ml.types import Data
@@ -15,6 +15,7 @@ class RuntimeConfig(Data):
     fps: int
     allow_single_frame: bool
     model: str
+    prompt: str="Describe the contents of this image."
 
     @staticmethod
     def from_dict(data: dict) -> 'RuntimeConfig':
@@ -36,7 +37,7 @@ class LLava(FrameModel):
         # save the image to a file
         tmpfile = tempfile.NamedTemporaryFile(delete=True, dir=self.tmp)
         image_path = tmpfile.name + ".jpg"
-        PIL.Image.fromarray(img).save(image_path)
+        Image.fromarray(img).save(image_path)
 
         with open(image_path, "rb") as image_file:
             image_data = image_file.read()
@@ -46,7 +47,7 @@ class LLava(FrameModel):
         # Query the LLaVA model with the image and a prompt
         response = self.client.generate(
             model=self.config.model,
-            prompt="Describe the contents of this image.",
+            prompt=self.config.prompt,
             images=[image_data]
         )
 
