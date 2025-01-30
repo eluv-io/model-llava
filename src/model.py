@@ -15,7 +15,8 @@ class RuntimeConfig(Data):
     fps: int
     allow_single_frame: bool
     model: str
-    prompt: str="Describe the contents of this image."
+    temperature: float
+    prompt: str
 
     @staticmethod
     def from_dict(data: dict) -> 'RuntimeConfig':
@@ -48,7 +49,8 @@ class LLava(FrameModel):
         response = self.client.generate(
             model=self.config.model,
             prompt=self.config.prompt,
-            images=[image_data]
+            images=[image_data],
+            options={"temperature": self.config.temperature}
         )
 
         return [FrameTag.from_dict({"text": response["response"], "confidence": 1.0, "box": {"x1": 0.05, "y1": 0.05, "x2": 0.95, "y2": 0.95}})]

@@ -6,3 +6,5 @@ runtime:
     model: llava:13b
     fps: 0.25
     allow_single_frame: true
+    temperature: 0.3
+    prompt: "Describe the contents of this image."
