@@ -12,6 +12,8 @@ from config import config
 
 @dataclass
 class RuntimeConfig(Data):
+    llama_endpoint: str
+    models: list
     fps: int
     allow_single_frame: bool
     model: str
@@ -24,8 +26,8 @@ class RuntimeConfig(Data):
 
 class LLava(FrameModel):
     def __init__(self, runtime_config: dict):
-        self.client = Client(config["llama_endpoint"])
         self.config = RuntimeConfig.from_dict(runtime_config)
+        self.client = Client(self.config.llama_endpoint)
         self.tmp = config["storage"]["tmp"]
 
     def get_config(self) -> dict:

@@ -1,8 +1,9 @@
-llama_endpoint: http://localhost:11434
 storage:
   tmp: tmp
 runtime:
   default:
+    llama_endpoint: http://localhost:11434
+    models: null
     model: llava:13b
     fps: 0.25
     allow_single_frame: true
