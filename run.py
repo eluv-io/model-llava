@@ -1,4 +1,3 @@
-
 import argparse
 import os
 import json
@@ -8,6 +7,7 @@ from common_ml.model import default_tag
 
 from src.model import LLava
 from config import config
+import setproctitle
 
 from multiprocessing import Process
 
@@ -52,6 +52,7 @@ def run(file_paths: List[str], runtime_config: str=None):
         raise Exception(f"{errors} sub worker(s) got a nonzero exit code")
 
 if __name__ == '__main__':
+    setproctitle.setproctitle("model-llava")
     parser = argparse.ArgumentParser()
     parser.add_argument('file_paths', nargs='+', type=str)
     parser.add_argument('--config', type=str, required=False)
