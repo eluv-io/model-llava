@@ -24,4 +24,4 @@ RUN /opt/conda/envs/mlpod/bin/pip install .
 COPY src ./src
 COPY config.yml run.py config.py .
 
-ENTRYPOINT ["/opt/conda/envs/mlpod/bin/python", "run.py"]
+ENTRYPOINT ["/opt/conda/envs/mlpod/bin/python", "-u", "run.py"]
