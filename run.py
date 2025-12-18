@@ -46,7 +46,7 @@ def run(file_paths: list[str], runtime_config: str | None = None):
         processes.append(p)
 
     errors = 0
-    for process in processes:
+    for p in processes:
         p.join()
         if p.exitcode != 0:
             errors = errors + 1
