@@ -90,6 +90,7 @@ if __name__ == '__main__':
     tag_fn = get_tag_fn(args.config)
     
     if args.live:
+        print('Running in live mode...')
         run_live_mode(tag_fn)
     else:
         tag_fn(args.file_paths)
