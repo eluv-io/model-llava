@@ -1,42 +1,28 @@
-from dataclasses import dataclass, asdict
-from typing import Optional, List
+from dataclasses import asdict
 from ollama import Client
 import numpy as np
 from PIL import Image
 import tempfile
+from dacite import from_dict
 
-from common_ml.types import Data
 from common_ml.model import FrameModel, FrameTag
 
+from src.config import RuntimeConfig
 from config import config
 
-@dataclass
-class RuntimeConfig(Data):
-    llama_endpoint: str
-    models: list
-    fps: int
-    allow_single_frame: bool
-    model: str
-    temperature: float
-    prompt: str
-
-    @staticmethod
-    def from_dict(data: dict) -> 'RuntimeConfig':
-        return RuntimeConfig(**data)
-
 class LLava(FrameModel):
-    def __init__(self, runtime_config: dict):
-        self.config = RuntimeConfig.from_dict(runtime_config)
+    def __init__(self, runtime_config: RuntimeConfig):
         self.client = Client(self.config.llama_endpoint)
         self.tmp = config["storage"]["tmp"]
+        self.config = runtime_config
 
     def get_config(self) -> dict:
         return asdict(self.config)
     
-    def set_config(self, cfg: dict) -> None:
-        self.config = RuntimeConfig.from_dict(cfg)
+    def set_config(self, config: dict) -> None:
+        self.config = from_dict(data_class=RuntimeConfig, data=config)
 
-    def tag(self, img: np.ndarray) -> List[FrameTag]:
+    def tag(self, img: np.ndarray) -> list[FrameTag]:
         # save the image to a file
         tmpfile = tempfile.NamedTemporaryFile(delete=True, dir=self.tmp)
         image_path = tmpfile.name + ".jpg"

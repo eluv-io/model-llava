@@ -1,34 +1,42 @@
 import argparse
 import os
 import json
+from dacite import from_dict
+import setproctitle
+from multiprocessing import Process
+
 from common_ml.utils import nested_update
 from common_ml.model import default_tag, run_live_mode
 
 from src.model import LLava
+from src.config import RuntimeConfig
 from config import config
-import setproctitle
 
-from multiprocessing import Process
-
-def sub_run(file_paths: list[str], cfg: dict, model_name: str):
-    cfg["model"] = model_name
-    model = LLava(runtime_config=cfg)
+def sub_run(file_paths: list[str], cfg: RuntimeConfig, model_name: str):
+    swapped_model_cfg = RuntimeConfig(
+        llama_endpoint=cfg.llama_endpoint,
+        models=cfg.models,
+        fps=cfg.fps,
+        allow_single_frame=cfg.allow_single_frame,
+        model=model_name,
+        temperature=cfg.temperature,
+        prompt=cfg.prompt,
+    )
+    model = LLava(runtime_config=swapped_model_cfg)
     out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tags')
     default_tag(model, file_paths, out_path)
 
-def get_runtime_config(runtime_config: str | None = None):
+def get_runtime_config(runtime_config: str | None) -> RuntimeConfig:
     """Get the runtime configuration, merging with defaults if provided"""
-    if runtime_config is None:
-        return config["runtime"]["default"]
-    else:
-        cfg = json.loads(runtime_config)
-        return nested_update(config["runtime"]["default"], cfg)
+    ipt_cfg = {}
+    if runtime_config is not None:
+        ipt_cfg = json.loads(runtime_config)
 
-def run(file_paths: list[str], runtime_config: str | None = None):
-    cfg = get_runtime_config(runtime_config)
+    updated_cfg = nested_update(config["runtime"]["default"], ipt_cfg)
+    return from_dict(RuntimeConfig, updated_cfg)
 
-    model_list = cfg.get("models", None)
-    if model_list is None: model_list = [cfg["model"]]
+def run(file_paths: list[str], cfg: RuntimeConfig):
+    model_list = cfg.models
 
     ## map model -> list of files
     sub_file_lists = { m : [] for m in model_list }
@@ -54,12 +62,12 @@ def run(file_paths: list[str], runtime_config: str | None = None):
     if errors != 0:
         raise Exception(f"{errors} sub worker(s) got a nonzero exit code")
 
-def get_tag_fn(runtime_config: str | None = None):
+def get_tag_fn(runtime_config: str | None):
     """Create a tag function with the specified configuration"""
     cfg = get_runtime_config(runtime_config)
     
     def tag_fn(file_paths: list[str]):
-        run(file_paths, json.dumps(cfg))
+        run(file_paths, cfg)
     
     return tag_fn
 
