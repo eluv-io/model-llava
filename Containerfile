@@ -3,8 +3,6 @@ WORKDIR /elv
 
 RUN conda create -n mlpod python=3.10 -y
 
-SHELL ["conda", "run", "-n", "mlpod", "/bin/bash", "-c"]
-
 RUN apt-get update && apt-get install -y build-essential && apt-get install -y ffmpeg
 
 # Create the SSH directory and set correct permissions
