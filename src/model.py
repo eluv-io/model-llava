@@ -7,11 +7,11 @@ from dacite import from_dict
 
 from common_ml.model import FrameModel, FrameTag
 
-from src.config import RuntimeConfig
+from src.config import LLavaRuntimeConfig
 from config import config
 
 class LLava(FrameModel):
-    def __init__(self, runtime_config: RuntimeConfig):
+    def __init__(self, runtime_config: LLavaRuntimeConfig):
         self.client = Client(self.config.llama_endpoint)
         self.tmp = config["storage"]["tmp"]
         self.config = runtime_config
@@ -20,7 +20,7 @@ class LLava(FrameModel):
         return asdict(self.config)
     
     def set_config(self, config: dict) -> None:
-        self.config = from_dict(data_class=RuntimeConfig, data=config)
+        self.config = from_dict(data_class=LLavaRuntimeConfig, data=config)
 
     def tag(self, img: np.ndarray) -> list[FrameTag]:
         # save the image to a file

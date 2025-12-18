@@ -9,34 +9,42 @@ from common_ml.utils import nested_update
 from common_ml.model import default_tag, run_live_mode
 
 from src.model import LLava
-from src.config import RuntimeConfig
+from src.config import LLavaRuntimeConfig
+from src.args import RuntimeArgs
 from config import config
 
-def sub_run(file_paths: list[str], cfg: RuntimeConfig, model_name: str):
-    swapped_model_cfg = RuntimeConfig(
+def sub_run(file_paths: list[str], cfg: RuntimeArgs, model_name: str):
+    run_cfg = LLavaRuntimeConfig(
         llama_endpoint=cfg.llama_endpoint,
-        models=cfg.models,
         fps=cfg.fps,
         allow_single_frame=cfg.allow_single_frame,
         model=model_name,
         temperature=cfg.temperature,
         prompt=cfg.prompt,
     )
-    model = LLava(runtime_config=swapped_model_cfg)
+    model = LLava(runtime_config=run_cfg)
     out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tags')
     default_tag(model, file_paths, out_path)
 
-def get_runtime_config(runtime_config: str | None) -> RuntimeConfig:
+def get_runtime_config(runtime_config: str | None) -> RuntimeArgs:
     """Get the runtime configuration, merging with defaults if provided"""
     ipt_cfg = {}
     if runtime_config is not None:
         ipt_cfg = json.loads(runtime_config)
 
     updated_cfg = nested_update(config["runtime"]["default"], ipt_cfg)
-    return from_dict(RuntimeConfig, updated_cfg)
 
-def run(file_paths: list[str], cfg: RuntimeConfig):
+    runtime_cfg = from_dict(RuntimeArgs, updated_cfg)
+
+    # fix models field
+    if runtime_cfg.models is None:
+        runtime_cfg.models = [runtime_cfg.model]
+
+    return runtime_cfg
+
+def run(file_paths: list[str], cfg: RuntimeArgs):
     model_list = cfg.models
+    assert model_list is not None and len(model_list) > 0
 
     ## map model -> list of files
     sub_file_lists = { m : [] for m in model_list }
