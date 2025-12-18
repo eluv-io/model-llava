@@ -12,9 +12,9 @@ from config import config
 
 class LLava(FrameModel):
     def __init__(self, runtime_config: LLavaRuntimeConfig):
-        self.client = Client(self.config.llama_endpoint)
         self.tmp = config["storage"]["tmp"]
         self.config = runtime_config
+        self.client = Client(self.config.llama_endpoint)
 
     def get_config(self) -> dict:
         return asdict(self.config)
