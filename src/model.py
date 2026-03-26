@@ -5,7 +5,7 @@ from PIL import Image
 import tempfile
 from dacite import from_dict
 
-from common_ml.model import FrameModel, FrameTag
+from common_ml.tagging.models.frame_based import FrameModel, FrameTag
 
 from src.config import LLavaRuntimeConfig
 from config import config
@@ -22,7 +22,7 @@ class LLava(FrameModel):
     def set_config(self, config: dict) -> None:
         self.config = from_dict(data_class=LLavaRuntimeConfig, data=config)
 
-    def tag(self, img: np.ndarray) -> list[FrameTag]:
+    def tag_frame(self, img: np.ndarray) -> list[FrameTag]:
         # save the image to a file
         tmpfile = tempfile.NamedTemporaryFile(delete=True, dir=self.tmp)
         image_path = tmpfile.name + ".jpg"
@@ -41,4 +41,9 @@ class LLava(FrameModel):
             options={"temperature": self.config.temperature}
         )
 
-        return [FrameTag.from_dict({"text": response["response"], "confidence": 1.0, "box": {"x1": 0.05, "y1": 0.05, "x2": 0.95, "y2": 0.95}})]
+        return [
+            FrameTag(
+                tag=response["response"],
+                box={"x1": 0.05, "y1": 0.05, "x2": 0.95, "y2": 0.95}
+            )
+        ]

@@ -4,7 +4,6 @@ from dataclasses import dataclass
 class LLavaRuntimeConfig:
     llama_endpoint: str
     fps: float
-    allow_single_frame: bool
     model: str
     temperature: float
     prompt: str
