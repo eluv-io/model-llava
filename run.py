@@ -69,7 +69,7 @@ if __name__ == '__main__':
     setproctitle.setproctitle("model-llava")
     parser = argparse.ArgumentParser(description="Run the LLava model for tagging")
     parser.add_argument('--output-path', type=str, required=True)
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
     output_path = args.output_path
 
     params = get_params()
