@@ -12,7 +12,6 @@ from common_ml.tagging.run_helpers import catch_errors, get_params, start_loop_f
 from src.model import LLava
 from src.config import LLavaRuntimeConfig
 from src.args import RuntimeArgs
-from config import config
 
 class DistributedProducer(TagMessageProducer):
     def __init__(self, child_producers: list[TagMessageProducer]):
