@@ -1,4 +1,4 @@
-import argparse
+
 import queue
 from typing import Iterator, List
 from dacite import from_dict
@@ -6,8 +6,8 @@ import setproctitle
 from threading import Thread
 
 from common_ml.tagging.producer import Message, TagMessageProducer
-from common_ml.tagging.messages import Error, ErrorMessage
-from common_ml.tagging.run_helpers import catch_errors, get_params, start_loop_from_producer
+from common_ml.tagging.messages import Error
+from common_ml.tagging.run_helpers import catch_errors, get_params, run_default
 
 from src.model import LLava
 from src.config import LLavaRuntimeConfig
@@ -29,6 +29,7 @@ class DistributedProducer(TagMessageProducer):
                     break
                 batch.append(file_paths.pop())
 
+        # each sub-producer writes to the queue
         out = queue.Queue()
         threads = []
         for i, producer in enumerate(self.child_producers):
@@ -48,6 +49,7 @@ class DistributedProducer(TagMessageProducer):
         for t in threads:
             t.join()
 
+        # yield any remaining messages
         while True:
             try:
                 yield out.get_nowait()
@@ -59,17 +61,12 @@ class DistributedProducer(TagMessageProducer):
             for msg in producer.produce(files):
                 output.put(msg)
         except Exception as e:
-            output.put(ErrorMessage(type="error", data=Error(message=str(e))))
+            output.put(Error(message=str(e)))
 
 
 if __name__ == '__main__':
-    catch_errors()
-
     setproctitle.setproctitle("model-llava")
-    parser = argparse.ArgumentParser(description="Run the LLava model for tagging")
-    parser.add_argument('--output-path', type=str, required=True)
-    args, _ = parser.parse_known_args()
-    output_path = args.output_path
+    catch_errors()
 
     params = get_params()
 
@@ -90,4 +87,4 @@ if __name__ == '__main__':
         producers.append(TagMessageProducer.from_model(fm, fps=args.fps))
 
     distributed_producer = DistributedProducer(producers)
-    start_loop_from_producer(distributed_producer, output_path, continue_on_error=params.continue_on_error)
+    run_default(distributed_producer)
